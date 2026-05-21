@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0B2545" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Elder Trading System</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<style>
+  :root {
+    --navy: #0B2545;
+    --teal: #13315C;
+    --gold: #C8A951;
+    --green: #2E7D5B;
+    --red: #B33A3A;
+    --blue: #5BA3B5;
+    --light: #EEF1F4;
+    --pale: #F7F8FA;
+    --dark: #3A3A3A;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--pale);
+    color: var(--dark);
+    font-size: 16px;
+    line-height: 1.5;
+    overscroll-behavior-y: contain;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    background: var(--navy);
+    color: white;
+    padding: calc(12px + var(--safe-top)) 16px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid var(--gold);
+  }
+  .topbar h1 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .topbar .sub {
+    font-size: 11px;
+    color: var(--gold);
+    margin-top: 2px;
+  }
+
+  /* ---------- Tab bar (bottom nav) ---------- */
+  .tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #ddd;
+    display: flex;
+    padding-bottom: var(--safe-bottom);
+    z-index: 100;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--dark);
+    font-size: 11px;
+    transition: color 0.2s;
+  }
+  .tab .icon {
+    font-size: 22px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .tab.active {
+    color: var(--navy);
+    font-weight: 600;
+  }
+  .tab.active .icon { color: var(--gold); }
+
+  /* ---------- Pages ---------- */
+  .page {
+    display: none;
+    padding: 16px;
+    padding-bottom: calc(80px + var(--safe-bottom));
+    min-height: calc(100vh - 60px);
+  }
+  .page.active { display: block; }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+  .card h2 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: var(--navy);
+  }
+  .card h3 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ---------- Inputs ---------- */
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--dark);
+    margin: 12px 0 6px;
+    font-weight: 500;
+  }
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: white;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(11, 37, 69, 0.1);
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.gold { background: var(--gold); color: var(--navy); }
+  .btn.outline {
+    background: white;
+    border: 1.5px solid var(--navy);
+    color: var(--navy);
+  }
+  .btn.danger { background: var(--red); }
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn-row .btn { margin-top: 0; }
+
+  /* ---------- Signal cards ---------- */
+  .signal {
+    border-left: 4px solid var(--green);
+    background: white;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+  .signal.short { border-left-color: var(--red); }
+  .signal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .signal .ticker {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .signal .dir-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--green);
+    color: white;
+  }
+  .signal .dir-badge.short { background: var(--red); }
+  .signal .score {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--navy);
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .signal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+  }
+  .signal-grid .label {
+    color: #888;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+  .signal-grid .value {
+    font-weight: 600;
+    color: var(--navy);
+    font-size: 14px;
+  }
+  .impulse-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 10px;
+  }
+  .ibadge {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .ibadge.green { background: #d4f0e2; color: var(--green); }
+  .ibadge.red { background: #fbe2e2; color: var(--red); }
+  .ibadge.blue { background: #d6ecf2; color: var(--teal); }
+
+  /* ---------- Checklist ---------- */
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: var(--pale);
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .checklist-item.checked {
+    background: #d4f0e2;
+  }
+  .checklist-item .box {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #999;
+    border-radius: 4px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    font-size: 14px;
+    color: var(--green);
+    font-weight: 700;
+  }
+  .checklist-item.checked .box {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+  .checklist-item .text {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .score-display {
+    font-size: 36px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--navy);
+    margin: 16px 0;
+  }
+  .score-display .denom {
+    font-size: 20px;
+    color: #999;
+  }
+  .score-msg {
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .score-msg.go {
+    background: #d4f0e2;
+    color: var(--green);
+  }
+  .score-msg.nogo {
+    background: #fbe2e2;
+    color: var(--red);
+  }
+
+  /* ---------- Risk bar ---------- */
+  .risk-bar {
+    height: 30px;
+    background: var(--pale);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    margin: 12px 0;
+  }
+  .risk-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green) 0%, var(--gold) 50%, var(--red) 100%);
+    transition: width 0.3s;
+  }
+  .risk-bar-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+    font-size: 13px;
+  }
+
+  /* ---------- Result rows ---------- */
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .label {
+    color: #777;
+    font-size: 13px;
+  }
+  .result-row .value {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--navy);
+  }
+  .result-row .value.big {
+    font-size: 22px;
+    color: var(--gold);
+  }
+
+  /* ---------- Misc ---------- */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state .msg { font-size: 14px; line-height: 1.5; }
+
+  .loading {
+    text-align: center;
+    padding: 30px 20px;
+  }
+  .spinner {
+    border: 3px solid #eee;
+    border-top: 3px solid var(--navy);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 16px;
+    right: 16px;
+    background: var(--navy);
+    color: white;
+    padding: 14px;
+    border-radius: 8px;
+    text-align: center;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(120%);
+    transition: transform 0.3s;
+  }
+  .toast.show { transform: translateY(0); }
+
+  .badge-list {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .pill {
+    padding: 4px 10px;
+    background: var(--light);
+    color: var(--navy);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .small-text { font-size: 12px; color: #777; line-height: 1.5; }
+
+  .journal-entry {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  .journal-entry .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .journal-entry .head .ticker {
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .journal-entry .pnl {
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .journal-entry .pnl.win { color: var(--green); }
+  .journal-entry .pnl.loss { color: var(--red); }
+  .journal-entry .meta {
+    font-size: 12px;
+    color: #888;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .stat-tile {
+    background: var(--pale);
+    padding: 10px;
+    border-radius: 6px;
+  }
+  .stat-tile .label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+  }
+  .stat-tile .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-top: 2px;
+  }
+
+  details {
+    margin: 10px 0;
+  }
+  details summary {
+    cursor: pointer;
+    padding: 8px;
+    background: var(--light);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  details > div { padding: 10px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>ELDER TRADING SYSTEM</h1>
+  <div class="sub" id="topbarSub">Indian Equities · Triple Screen + Impulse</div>
+</div>
+
+<!-- ============== PAGE: SCAN ============== -->
+<div class="page active" id="page-scan">
+  <div class="card">
+    <h2>Scanner</h2>
+    <p class="small-text">Run this after market close (~4 PM IST) to find tomorrow's A-Trade setups.</p>
+
+    <label>Universe</label>
+    <select id="scanUniverse">
+      <option value="NIFTY_50">Nifty 50 (50 stocks · fastest)</option>
+      <option value="NIFTY_100">Nifty 100 (broader · slower)</option>
+      <option value="INDICES">Indices only (8 indices)</option>
+    </select>
+
+    <label>Minimum A-Trade Score</label>
+    <select id="scanMinScore">
+      <option value="7">7 / 10 (Elder's minimum)</option>
+      <option value="8">8 / 10 (high quality only)</option>
+      <option value="6">6 / 10 (also see borderline)</option>
+    </select>
+
+    <button class="btn" id="scanBtn" onclick="runScan()">▶ Scan Now</button>
+  </div>
+
+  <div id="scanResults"></div>
+</div>
+
+<!-- ============== PAGE: SIZE ============== -->
+<div class="page" id="page-size">
+  <div class="card">
+    <h2>Position Sizer (2% Rule)</h2>
+    <p class="small-text">Calculates how many shares to buy/short based on Elder's 2% Rule.</p>
+
+    <label>Account Size (₹)</label>
+    <input type="number" id="sizeAccount" placeholder="500000" />
+
+    <label>Direction</label>
+    <select id="sizeDirection">
+      <option value="LONG">LONG (buying)</option>
+      <option value="SHORT">SHORT (selling)</option>
+    </select>
+
+    <label>Entry Price (₹)</label>
+    <input type="number" id="sizeEntry" placeholder="2500" step="0.05" />
+
+    <label>Stop Loss Price (₹)</label>
+    <input type="number" id="sizeStop" placeholder="2450" step="0.05" />
+
+    <label>Risk % per Trade</label>
+    <select id="sizeRiskPct">
+      <option value="0.01">1% (conservative)</option>
+      <option value="0.02" selected>2% (Elder's default)</option>
+      <option value="0.005">0.5% (very conservative)</option>
+    </select>
+
+    <button class="btn" onclick="calcSize()">Calculate</button>
+  </div>
+
+  <div id="sizeResults"></div>
+</div>
+
+<!-- ============== PAGE: CHECKLIST ============== -->
+<div class="page" id="page-checklist">
+  <div class="card">
+    <h2>A-Trade Checklist</h2>
+    <p class="small-text">Tap each item to check off. <b>Take the trade only if score is 7+/10.</b></p>
+
+    <div id="checklistItems"></div>
+
+    <div class="score-display">
+      <span id="checklistScore">0</span><span class="denom">/10</span>
+    </div>
+
+    <div id="checklistMsg" class="score-msg nogo">
+      Score too low — skip this trade
+    </div>
+
+    <button class="btn outline" onclick="resetChecklist()">Reset Checklist</button>
+  </div>
+</div>
+
+<!-- ============== PAGE: RISK ============== -->
+<div class="page" id="page-risk">
+  <div class="card">
+    <h2>6% Monthly Rule Tracker</h2>
+    <p class="small-text">Track your monthly risk to enforce Elder's 6% rule.</p>
+
+    <label>Closed Losses This Month (₹)</label>
+    <input type="number" id="riskClosed" placeholder="0" />
+
+    <label>Open Risk Right Now (₹)</label>
+    <input type="number" id="riskOpen" placeholder="0" />
+    <p class="small-text">= sum of (entry − current stop) × shares across all open positions</p>
+
+    <label>Account Size at Start of Month (₹)</label>
+    <input type="number" id="riskAccount" placeholder="500000" />
+
+    <button class="btn" onclick="checkRisk()">Check Status</button>
+  </div>
+
+  <div id="riskResults"></div>
+
+  <div class="card">
+    <h3>The 6% Rule, briefly</h3>
+    <p class="small-text">
+      Stop trading for the rest of the month when (closed losses + open risk)
+      hits 6% of your starting-month equity. Moving a stop to breakeven on a
+      winner clears that position's open risk and frees up budget.
+    </p>
+  </div>
+</div>
+
+<!-- ============== PAGE: JOURNAL ============== -->
+<div class="page" id="page-journal">
+  <div class="card">
+    <h2>Trade Journal</h2>
+    <p class="small-text">Stored privately on your phone. Nothing is uploaded.</p>
+
+    <details>
+      <summary>+ Add new trade</summary>
+      <div>
+        <label>Ticker</label>
+        <input type="text" id="jTicker" placeholder="RELIANCE" />
+
+        <label>Direction</label>
+        <select id="jDirection">
+          <option value="LONG">LONG</option>
+          <option value="SHORT">SHORT</option>
+        </select>
+
+        <label>Entry Date</label>
+        <input type="text" id="jEntryDate" placeholder="2026-05-21" />
+
+        <label>Entry Price (₹)</label>
+        <input type="number" id="jEntryPrice" step="0.05" />
+
+        <label>Exit Price (₹) <span class="small-text">— leave blank if still open</span></label>
+        <input type="number" id="jExitPrice" step="0.05" />
+
+        <label>Shares</label>
+        <input type="number" id="jShares" />
+
+        <label>A-Trade Score Used</label>
+        <input type="number" id="jScore" placeholder="7" min="0" max="10" />
+
+        <label>Notes</label>
+        <input type="text" id="jNotes" placeholder="What worked, what didn't..." />
+
+        <button class="btn" onclick="addJournalEntry()">Save Entry</button>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h3>Stats</h3>
+    <div class="stats-grid" id="journalStats"></div>
+  </div>
+
+  <div id="journalList"></div>
+</div>
+
+<!-- ============== PAGE: SETTINGS ============== -->
+<div class="page" id="page-settings">
+  <div class="card">
+    <h2>Settings</h2>
+
+    <label>Backend URL</label>
+    <input type="text" id="settingsBackend" placeholder="https://your-app.onrender.com" />
+    <p class="small-text">The URL where you deployed the backend on Render.com</p>
+
+    <label>Default Account Size (₹)</label>
+    <input type="number" id="settingsAccount" placeholder="500000" />
+
+    <label>Default Risk % per Trade</label>
+    <select id="settingsRisk">
+      <option value="0.005">0.5%</option>
+      <option value="0.01">1%</option>
+      <option value="0.02" selected>2%</option>
+    </select>
+
+    <button class="btn" onclick="saveSettings()">Save Settings</button>
+  </div>
+
+  <div class="card">
+    <h3>Data Management</h3>
+    <button class="btn outline" onclick="exportData()">Export All Data (JSON)</button>
+    <button class="btn outline" onclick="document.getElementById('importFile').click()">Import Data</button>
+    <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)" />
+    <button class="btn danger" onclick="clearData()" style="margin-top: 20px;">Clear All Local Data</button>
+  </div>
+
+  <div class="card">
+    <h3>About</h3>
+    <p class="small-text">
+      Implementation of Dr. Alexander Elder's framework from <i>The New Trading for a Living</i> (2014).
+      <br/><br/>
+      <b>This is a signal-generation and analysis tool, not an auto-trader.</b>
+      You place orders manually with your broker after reviewing each signal.
+      <br/><br/>
+      Paper-trade for 3+ months before risking real money.
+    </p>
+  </div>
+</div>
+
+<!-- Tab bar -->
+<div class="tabbar">
+  <button class="tab active" data-page="scan" onclick="switchTab('scan')">
+    <span class="icon">🔍</span>Scan
+  </button>
+  <button class="tab" data-page="size" onclick="switchTab('size')">
+    <span class="icon">📐</span>Size
+  </button>
+  <button class="tab" data-page="checklist" onclick="switchTab('checklist')">
+    <span class="icon">✓</span>Check
+  </button>
+  <button class="tab" data-page="risk" onclick="switchTab('risk')">
+    <span class="icon">⚠️</span>Risk
+  </button>
+  <button class="tab" data-page="journal" onclick="switchTab('journal')">
+    <span class="icon">📓</span>Log
+  </button>
+  <button class="tab" data-page="settings" onclick="switchTab('settings')">
+    <span class="icon">⚙️</span>More
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============== STATE ==============
+const STORAGE_KEYS = {
+  settings: 'elder_settings',
+  journal: 'elder_journal',
+  checklist: 'elder_checklist',
+};
+
+const CHECKLIST_ITEMS = [
+  "Weekly Impulse permits this direction",
+  "Daily oscillator at oversold (longs) or overbought (shorts)",
+  "Reward:Risk ≥ 2:1 (ideally 3:1)",
+  "No earnings or major news within holding period",
+  "Broad market & sector aligned with trade direction",
+  "Volume confirms the setup",
+  "No major support/resistance against trade nearby",
+  "Available risk budget under 6% Rule",
+  "Entry, stop, target all written down before entry",
+  "Position size = (2% × equity) ÷ (entry − stop)",
+];
+
+let settings = loadSettings();
+let journal = loadJournal();
+let checklistState = new Array(10).fill(false);
+
+// ============== STORAGE ==============
+function loadSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.settings)) || {
+      backend: '',
+      account: 500000,
+      risk: 0.02,
+    };
+  } catch (e) {
+    return { backend: '', account: 500000, risk: 0.02 };
+  }
+}
+function saveSettingsObj(s) {
+  localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(s));
+}
+function loadJournal() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.journal)) || []; }
+  catch (e) { return []; }
+}
+function saveJournal() {
+  localStorage.setItem(STORAGE_KEYS.journal, JSON.stringify(journal));
+}
+
+// ============== UI HELPERS ==============
+function switchTab(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[data-page="${name}"]`).classList.add('active');
+  window.scrollTo(0, 0);
+
+  if (name === 'journal') renderJournal();
+  if (name === 'checklist') renderChecklist();
+  if (name === 'settings') populateSettings();
+}
+
+function toast(msg, ms = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function fmtINR(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+// ============== API ==============
+async function apiCall(path, options = {}) {
+  if (!settings.backend) {
+    throw new Error('Backend URL not configured. Go to Settings.');
+  }
+  const url = settings.backend.replace(/\/$/, '') + path;
+  const res = await fetch(url, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`API ${res.status}: ${txt}`);
+  }
+  return res.json();
+}
+
+// ============== SCAN ==============
+async function runScan() {
+  const btn = document.getElementById('scanBtn');
+  const out = document.getElementById('scanResults');
+  const universe = document.getElementById('scanUniverse').value;
+  const minScore = document.getElementById('scanMinScore').value;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Scanning...';
+  out.innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>Scanning ${universe.replace('_', ' ')}...</div>
+      <div class="small-text">This takes 1–3 minutes. The first scan after the backend wakes up is slowest.</div>
+    </div>`;
+
+  try {
+    const data = await apiCall(`/api/scan?universe=${universe}&min_score=${minScore}&period=1y`);
+    renderScanResults(data);
+  } catch (e) {
+    out.innerHTML = `
+      <div class="card">
+        <h3>⚠️ Scan failed</h3>
+        <p class="small-text">${e.message}</p>
+        <p class="small-text">Common causes:<br/>
+        • Backend URL not set (go to Settings)<br/>
+        • Backend is still waking up (free tier sleeps after 15 min idle — wait 60 sec and retry)<br/>
+        • No internet</p>
+      </div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ Scan Now';
+  }
+}
+
+function renderScanResults(data) {
+  const out = document.getElementById('scanResults');
+  if (!data.signals || data.signals.length === 0) {
+    out.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🔭</div>
+        <div class="msg">
+          <b>No A-Trade setups found.</b><br/>
+          Scanned ${data.scanned} stocks. This is normal most days.<br/><br/>
+          Elder: "Patience is more profitable than action."
+        </div>
+      </div>`;
+    return;
+  }
+  let html = `<div class="small-text" style="margin-bottom:12px">
+    Found <b>${data.count}</b> setups out of ${data.scanned} stocks scanned.
+    Tap any to copy details for your broker order.</div>`;
+  data.signals.forEach((s, i) => {
+    html += `
+      <div class="signal ${s.direction === 'SHORT' ? 'short' : ''}" onclick="signalTapped(${i})">
+        <div class="signal-head">
+          <div>
+            <span class="ticker">${s.ticker}</span>
+            <span class="dir-badge ${s.direction === 'SHORT' ? 'short' : ''}">${s.direction}</span>
+          </div>
+          <span class="score">★ ${s.score}/10</span>
+        </div>
+        <div class="signal-grid">
+          <div><div class="label">Entry</div><div class="value">${fmtINR(s.entry)}</div></div>
+          <div><div class="label">Stop</div><div class="value">${fmtINR(s.stop)}</div></div>
+          <div><div class="label">Target</div><div class="value">${fmtINR(s.target)}</div></div>
+        </div>
+        <div class="impulse-badges">
+          <span class="ibadge ${s.weekly}">Weekly: ${s.weekly}</span>
+          <span class="ibadge ${s.daily}">Daily: ${s.daily}</span>
+          <span class="pill">R:R ${s.rr}</span>
+        </div>
+      </div>`;
+  });
+  out.innerHTML = html;
+  window._lastSignals = data.signals;
+}
+
+function signalTapped(i) {
+  const s = window._lastSignals[i];
+  if (!s) return;
+  // Copy details + prefill sizer
+  const summary =
+    `${s.ticker} ${s.direction}\nEntry: ₹${s.entry}\nStop: ₹${s.stop}\n` +
+    `Target: ₹${s.target}\nR:R: ${s.rr}\nScore: ${s.score}/10`;
+  if (navigator.clipboard) navigator.clipboard.writeText(summary);
+
+  // Prefill the size page
+  document.getElementById('sizeAccount').value = settings.account;
+  document.getElementById('sizeEntry').value = s.entry;
+  document.getElementById('sizeStop').value = s.stop;
+  document.getElementById('sizeDirection').value = s.direction;
+  document.getElementById('sizeRiskPct').value = settings.risk;
+  toast('Copied to clipboard. Position sizer pre-filled.');
+  setTimeout(() => switchTab('size'), 800);
+}
+
+// ============== SIZE ==============
+async function calcSize() {
+  const account = parseFloat(document.getElementById('sizeAccount').value);
+  const entry = parseFloat(document.getElementById('sizeEntry').value);
+  const stop = parseFloat(document.getElementById('sizeStop').value);
+  const direction = document.getElementById('sizeDirection').value;
+  const risk = parseFloat(document.getElementById('sizeRiskPct').value);
+  const out = document.getElementById('sizeResults');
+
+  if (!account || !entry || !stop) {
+    toast('Please fill all fields');
+    return;
+  }
+  // Local computation — no API needed for math
+  const riskPerShare = direction === 'LONG' ? entry - stop : stop - entry;
+  if (riskPerShare <= 0) {
+    out.innerHTML = `
+      <div class="card">
+        <h3>⚠️ Invalid stop placement</h3>
+        <p class="small-text">For ${direction}, the stop must be ${direction === 'LONG' ? 'below' : 'above'} the entry.</p>
+      </div>`;
+    return;
+  }
+  const maxLoss = account * risk;
+  const shares = Math.floor(maxLoss / riskPerShare);
+  const actualLoss = shares * riskPerShare;
+  const capital = shares * entry;
+  const actualRiskPct = actualLoss / account;
+
+  out.innerHTML = `
+    <div class="card">
+      <h3>Result</h3>
+      <div class="result-row">
+        <span class="label">Shares to ${direction === 'LONG' ? 'buy' : 'short'}</span>
+        <span class="value big">${shares.toLocaleString('en-IN')}</span>
+      </div>
+      <div class="result-row">
+        <span class="label">Capital deployed</span>
+        <span class="value">${fmtINR(capital)}</span>
+      </div>
+      <div class="result-row">
+        <span class="label">Risk per share</span>
+        <span class="value">${fmtINR(riskPerShare)}</span>
+      </div>
+      <div class="result-row">
+        <span class="label">Maximum loss if stopped out</span>
+        <span class="value" style="color:var(--red)">${fmtINR(actualLoss)}</span>
+      </div>
+      <div class="result-row">
+        <span class="label">Actual risk %</span>
+        <span class="value">${(actualRiskPct * 100).toFixed(2)}%</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="small-text">
+        <b>Order to place with your broker:</b><br/>
+        ${direction} ${shares} shares at ₹${entry}<br/>
+        Set stop-loss at ₹${stop}<br/>
+        Set target (optional GTT) at ₹${parseFloat(document.getElementById('sizeEntry').value) ? '...' : '...'}
+      </p>
+    </div>`;
+}
+
+// ============== CHECKLIST ==============
+function renderChecklist() {
+  const out = document.getElementById('checklistItems');
+  out.innerHTML = CHECKLIST_ITEMS.map((item, i) => `
+    <div class="checklist-item ${checklistState[i] ? 'checked' : ''}" onclick="toggleCheck(${i})">
+      <div class="box">${checklistState[i] ? '✓' : ''}</div>
+      <div class="text">${item}</div>
+    </div>`).join('');
+  updateChecklistScore();
+}
+function toggleCheck(i) {
+  checklistState[i] = !checklistState[i];
+  renderChecklist();
+}
+function updateChecklistScore() {
+  const score = checklistState.filter(Boolean).length;
+  document.getElementById('checklistScore').textContent = score;
+  const msg = document.getElementById('checklistMsg');
+  if (score >= 7) {
+    msg.className = 'score-msg go';
+    msg.innerHTML = `✅ ${score}/10 — A-Trade qualifies. Proceed with the trade.`;
+  } else {
+    msg.className = 'score-msg nogo';
+    msg.innerHTML = `⚠️ ${score}/10 — Below 7. Skip this trade.`;
+  }
+}
+function resetChecklist() {
+  checklistState = new Array(10).fill(false);
+  renderChecklist();
+}
+
+// ============== RISK ==============
+function checkRisk() {
+  const closed = parseFloat(document.getElementById('riskClosed').value) || 0;
+  const open = parseFloat(document.getElementById('riskOpen').value) || 0;
+  const account = parseFloat(document.getElementById('riskAccount').value) || settings.account;
+  const out = document.getElementById('riskResults');
+
+  if (!account) {
+    toast('Enter account size');
+    return;
+  }
+  const closedPct = closed / account;
+  const openPct = open / account;
+  const totalPct = closedPct + openPct;
+  const limit = 0.06;
+  const available = Math.max(0, limit - totalPct);
+  const barWidth = Math.min(100, (totalPct / limit) * 100);
+  const allowed = totalPct < limit;
+
+  out.innerHTML = `
+    <div class="card">
+      <h3>${allowed ? '✅ You may trade' : '⛔ STOP — 6% Rule triggered'}</h3>
+      <div class="risk-bar">
+        <div class="risk-bar-fill" style="width:${barWidth}%"></div>
+        <div class="risk-bar-text">${(totalPct * 100).toFixed(1)}% of 6%</div>
+      </div>
+      <div class="result-row">
+        <span class="label">Closed losses</span>
+        <span class="value">${fmtINR(closed)} (${(closedPct * 100).toFixed(1)}%)</span>
+      </div>
+      <div class="result-row">
+        <span class="label">Open risk</span>
+        <span class="value">${fmtINR(open)} (${(openPct * 100).toFixed(1)}%)</span>
+      </div>
+      <div class="result-row">
+        <span class="label">Total risk used</span>
+        <span class="value">${(totalPct * 100).toFixed(1)}% / 6%</span>
+      </div>
+      <div class="result-row">
+        <span class="label">Remaining budget</span>
+        <span class="value" style="color:${allowed ? 'var(--green)' : 'var(--red)'}">
+          ${fmtINR(account * available)} (${(available * 100).toFixed(1)}%)
+        </span>
+      </div>
+    </div>
+    ${!allowed ? `
+      <div class="card" style="background:#fbe2e2">
+        <h3 style="color:var(--red)">⛔ Stop Trading This Month</h3>
+        <p class="small-text">
+          You've hit Elder's 6% Monthly Rule. Do NOT open new positions for the rest of the month.
+          Manage open positions only. Resume on the 1st of next month with a fresh budget.
+        </p>
+      </div>` : ''}`;
+}
+
+// ============== JOURNAL ==============
+function addJournalEntry() {
+  const ticker = document.getElementById('jTicker').value.trim().toUpperCase();
+  const direction = document.getElementById('jDirection').value;
+  const entryDate = document.getElementById('jEntryDate').value.trim();
+  const entryPrice = parseFloat(document.getElementById('jEntryPrice').value);
+  const exitPrice = parseFloat(document.getElementById('jExitPrice').value);
+  const shares = parseInt(document.getElementById('jShares').value);
+  const score = parseInt(document.getElementById('jScore').value);
+  const notes = document.getElementById('jNotes').value.trim();
+
+  if (!ticker || !entryDate || !entryPrice || !shares) {
+    toast('Fill ticker, date, entry price, and shares');
+    return;
+  }
+  let pnl = null;
+  if (!isNaN(exitPrice)) {
+    pnl = direction === 'LONG'
+      ? (exitPrice - entryPrice) * shares
+      : (entryPrice - exitPrice) * shares;
+  }
+  journal.unshift({
+    id: Date.now(),
+    ticker, direction, entryDate,
+    entryPrice, exitPrice: isNaN(exitPrice) ? null : exitPrice,
+    shares, score: isNaN(score) ? null : score, notes, pnl,
+  });
+  saveJournal();
+  document.querySelectorAll('#page-journal input').forEach(i => i.value = '');
+  toast('Trade saved');
+  renderJournal();
+}
+
+function deleteEntry(id) {
+  if (!confirm('Delete this trade?')) return;
+  journal = journal.filter(e => e.id !== id);
+  saveJournal();
+  renderJournal();
+}
+
+function renderJournal() {
+  const stats = document.getElementById('journalStats');
+  const list = document.getElementById('journalList');
+
+  // Stats
+  const closed = journal.filter(e => e.pnl !== null);
+  const wins = closed.filter(e => e.pnl > 0);
+  const losses = closed.filter(e => e.pnl <= 0);
+  const totalPnl = closed.reduce((s, e) => s + e.pnl, 0);
+  const winRate = closed.length ? (wins.length / closed.length * 100).toFixed(0) : 0;
+  const grossWin = wins.reduce((s, e) => s + e.pnl, 0);
+  const grossLoss = Math.abs(losses.reduce((s, e) => s + e.pnl, 0));
+  const pf = grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : '—';
+
+  stats.innerHTML = `
+    <div class="stat-tile"><div class="label">Total trades</div><div class="value">${journal.length}</div></div>
+    <div class="stat-tile"><div class="label">Closed</div><div class="value">${closed.length}</div></div>
+    <div class="stat-tile"><div class="label">Win rate</div><div class="value">${winRate}%</div></div>
+    <div class="stat-tile"><div class="label">Profit factor</div><div class="value">${pf}</div></div>
+    <div class="stat-tile" style="grid-column:span 2">
+      <div class="label">Total P&amp;L</div>
+      <div class="value" style="color:${totalPnl >= 0 ? 'var(--green)' : 'var(--red)'}">
+        ${totalPnl >= 0 ? '+' : ''}${fmtINR(totalPnl)}
+      </div>
+    </div>`;
+
+  if (journal.length === 0) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="icon">📓</div>
+      <div class="msg">No trades logged yet.<br/>Add your first trade above.</div>
+    </div>`;
+    return;
+  }
+  list.innerHTML = journal.map(e => `
+    <div class="journal-entry">
+      <div class="head">
+        <span class="ticker">${e.ticker} <span style="font-size:10px;color:#888">${e.direction}</span></span>
+        ${e.pnl !== null
+          ? `<span class="pnl ${e.pnl > 0 ? 'win' : 'loss'}">${e.pnl >= 0 ? '+' : ''}${fmtINR(e.pnl)}</span>`
+          : `<span style="font-size:11px;color:var(--gold)">OPEN</span>`}
+      </div>
+      <div class="meta">
+        ${e.entryDate} · ${e.shares} sh @ ₹${e.entryPrice}
+        ${e.exitPrice !== null ? `→ ₹${e.exitPrice}` : ''}
+        ${e.score !== null ? `· score ${e.score}/10` : ''}
+      </div>
+      ${e.notes ? `<div class="meta" style="margin-top:4px;font-style:italic">"${e.notes}"</div>` : ''}
+      <div style="text-align:right;margin-top:6px">
+        <button class="btn outline" style="display:inline-block;width:auto;padding:4px 10px;font-size:12px"
+                onclick="deleteEntry(${e.id})">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+// ============== SETTINGS ==============
+function populateSettings() {
+  document.getElementById('settingsBackend').value = settings.backend;
+  document.getElementById('settingsAccount').value = settings.account;
+  document.getElementById('settingsRisk').value = settings.risk;
+}
+
+function saveSettings() {
+  settings.backend = document.getElementById('settingsBackend').value.trim();
+  settings.account = parseFloat(document.getElementById('settingsAccount').value) || 500000;
+  settings.risk = parseFloat(document.getElementById('settingsRisk').value);
+  saveSettingsObj(settings);
+  toast('Settings saved');
+}
+
+function exportData() {
+  const data = {
+    settings,
+    journal,
+    exportedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `elder_backup_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Data exported');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.settings) { settings = data.settings; saveSettingsObj(settings); }
+      if (data.journal) { journal = data.journal; saveJournal(); }
+      toast('Data imported');
+      populateSettings();
+      renderJournal();
+    } catch (err) {
+      toast('Import failed: invalid file');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearData() {
+  if (!confirm('This deletes all journal entries and settings on this device. Continue?')) return;
+  if (!confirm('Are you absolutely sure? This cannot be undone.')) return;
+  localStorage.clear();
+  settings = { backend: '', account: 500000, risk: 0.02 };
+  journal = [];
+  populateSettings();
+  renderJournal();
+  toast('All data cleared');
+}
+
+// ============== INIT ==============
+window.addEventListener('load', () => {
+  renderChecklist();
+  if (!settings.backend) {
+    setTimeout(() => {
+      toast('Set up backend URL in Settings first', 4000);
+      switchTab('settings');
+    }, 600);
+  }
+});
+
+// Register service worker for offline / PWA install
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
