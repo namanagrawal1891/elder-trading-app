@@ -1,1 +1,0 @@
-# elder-trading-app
